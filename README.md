@@ -9,8 +9,7 @@ The goals of this project are
     - [ ] Document every decision, resource and changes in the project.
 
 ## Stretch Goals
-- [ ] Examples describing different scenarios.
-    - Different branches/subdirectories for each example, that are as much self-contained as possible.
+- [ ] Examples describing different scenarios. Different branches/subdirectories for each example, that are as much self-contained as possible.
     - [ ] Volume created external to Kubernetes, manually.
     - [ ] Have a simple API providing a volume that can be invoked by the CSI plugin.
     - [ ] Volume from a public cloud provider.
