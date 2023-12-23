@@ -77,6 +77,6 @@ spec:
 - [Container Storage Interface (CSI) specification](https://github.com/container-storage-interface/spec/blob/v1.9.0/spec.md)
 - [Ephemeral Inline CSI volumes KEP](https://github.com/kubernetes/enhancements/blob/ad6021b3d61a49040a3f835e12c8bb5424db2bbb/keps/sig-storage/20190122-csi-inline-volumes.md).
 - [enhancement tracking issue #596](https://github.com/kubernetes/enhancements/issues/596).
-- Kubernetes Code implementing [`emptyDir`][1] - [`pkg/volume/emptydir/empty_dir.go`](https://github.com/kubernetes/kubernetes/blob/master/pkg/volume/emptydir/empty_dir.go)
+- Kubernetes code implementing [`emptyDir`][1] - [`pkg/volume/emptydir/empty_dir.go`](https://github.com/kubernetes/kubernetes/blob/master/pkg/volume/emptydir/empty_dir.go)
 
 [1]: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
