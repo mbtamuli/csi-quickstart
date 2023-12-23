@@ -57,6 +57,62 @@ spec:
             foo: bar                            # Attributes passed to the driver to configure the volume
   ```
 
+## Implementation steps
+
+- Implement the CSI `Identity` service.
+  ```proto
+  service Identity {
+    rpc GetPluginInfo(GetPluginInfoRequest)
+      returns (GetPluginInfoResponse) {}
+
+    rpc GetPluginCapabilities(GetPluginCapabilitiesRequest)
+      returns (GetPluginCapabilitiesResponse) {}
+
+    rpc Probe (ProbeRequest)
+      returns (ProbeResponse) {}
+  }
+  ```
+- Implement the CSI `Node` service. For ephemeral inline volume request, we only need the `NodePublishVolume`(read _mount volume_), `NodeUnpublishVolume`(read _unmount volume_)
+  ```mermaid
+  stateDiagram-v2
+      direction TB
+      [*] --> Published: NodePublishVolume
+      Published --> Unpublished: NodeUnpublishVolume
+      Unpublished--> [*]
+  ```
+
+  ```proto
+  service Node {
+    rpc NodeStageVolume (NodeStageVolumeRequest)
+      returns (NodeStageVolumeResponse) {}
+
+    rpc NodeUnstageVolume (NodeUnstageVolumeRequest)
+      returns (NodeUnstageVolumeResponse) {}
+
+    rpc NodePublishVolume (NodePublishVolumeRequest)
+      returns (NodePublishVolumeResponse) {}
+
+    rpc NodeUnpublishVolume (NodeUnpublishVolumeRequest)
+      returns (NodeUnpublishVolumeResponse) {}
+
+    rpc NodeGetVolumeStats (NodeGetVolumeStatsRequest)
+      returns (NodeGetVolumeStatsResponse) {}
+
+
+    rpc NodeExpandVolume(NodeExpandVolumeRequest)
+      returns (NodeExpandVolumeResponse) {}
+
+
+    rpc NodeGetCapabilities (NodeGetCapabilitiesRequest)
+      returns (NodeGetCapabilitiesResponse) {}
+
+    rpc NodeGetInfo (NodeGetInfoRequest)
+      returns (NodeGetInfoResponse) {}
+  }
+  ```
+
+
+
 ## Required Reading
 
 - [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
