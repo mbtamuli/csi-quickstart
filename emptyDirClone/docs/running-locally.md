@@ -28,8 +28,8 @@ kubectl get nodes
 ```
 You should see an output similar to
 ```
-NAME                 STATUS     ROLES           AGE   VERSION
-kind-control-plane   NotReady   control-plane   9s    v1.27.3
+NAME                 STATUS   ROLES           AGE   VERSION
+kind-control-plane   Ready    control-plane   64s   v1.27.3
 ```
 
 ### Tear down cluster
