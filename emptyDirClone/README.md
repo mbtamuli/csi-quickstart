@@ -8,6 +8,10 @@ For more information, you can refer to the resources provided in the [Required R
 
 We will call the plugin `emptyDirClone`.
 
+## Quickstart
+
+1. Setup the cluster using the instructions in [running locally](./docs/running-locally.md).
+
 ## Understanding [`emptyDir`][1] Volumes
 
 [`emptyDir`][1] volumes are temporary directories exposed to the pod. These do not persist beyond the lifetime of a pod. This is implemented by Kubernetes itself(as opposed to a separate plugin).
