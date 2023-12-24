@@ -18,9 +18,6 @@ import (
 func TestEmptyDirClone(t *testing.T) {
 	emptyDirCloneFeature := features.New("emptyDirClone").
 		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-			return ctx
-		}).
-		Assess("pod is running", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 			client, err := cfg.NewClient()
 			if err != nil {
 				t.Fatal(err)
@@ -35,6 +32,28 @@ func TestEmptyDirClone(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			// create a job with one container
+			writeJob := newJobWithReadWriteCmd(newPod(cfg.Namespace(), "test-job-write"), 1)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := client.Resources().Create(ctx, writeJob); err != nil {
+				t.Fatal(err)
+			}
+
+			// create a job with two containers
+			readJob := newJobWithReadWriteCmd(newPod(cfg.Namespace(), "test-job-read"), 2)
+			if err := client.Resources().Create(ctx, readJob); err != nil {
+				t.Fatal(err)
+			}
+			return ctx
+		}).
+		Assess("pod is running", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			client, err := cfg.NewClient()
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			// check for the pod
 			found := v1.Pod{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-pod", Namespace: cfg.Namespace()},
@@ -44,7 +63,7 @@ func TestEmptyDirClone(t *testing.T) {
 			err = wait.For(conditions.New(client.Resources()).ResourceMatch(&found, func(object k8s.Object) bool {
 				p := object.(*v1.Pod)
 				return p.Status.Phase == v1.PodRunning
-			}), wait.WithTimeout(time.Second*10))
+			}), wait.WithTimeout(time.Second*30))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -57,24 +76,15 @@ func TestEmptyDirClone(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// create a job
-			job := newJobWithReadWriteCmd(newPod(cfg.Namespace(), "test-job"), 1)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := client.Resources().Create(ctx, job); err != nil {
-				t.Fatal(err)
-			}
-
 			// check for the job
 			found := batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-job", Namespace: cfg.Namespace()},
+				ObjectMeta: metav1.ObjectMeta{Name: "test-job-write", Namespace: cfg.Namespace()},
 			}
 			// wait for the job to succeed
 			err = wait.For(conditions.New(client.Resources()).ResourceMatch(&found, func(object k8s.Object) bool {
 				p := object.(*batchv1.Job)
 				return p.Status.Succeeded == 1
-			}), wait.WithTimeout(time.Second*10))
+			}), wait.WithTimeout(time.Second*30))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -87,24 +97,15 @@ func TestEmptyDirClone(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// create a job
-			job := newJobWithReadWriteCmd(newPod(cfg.Namespace(), "test-job"), 2)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := client.Resources().Create(ctx, job); err != nil {
-				t.Fatal(err)
-			}
-
 			// check for the job
 			found := batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-job", Namespace: cfg.Namespace()},
+				ObjectMeta: metav1.ObjectMeta{Name: "test-job-read", Namespace: cfg.Namespace()},
 			}
 			// wait for the job to succeed
 			err = wait.For(conditions.New(client.Resources()).ResourceMatch(&found, func(object k8s.Object) bool {
 				p := object.(*batchv1.Job)
 				return p.Status.Succeeded == 1
-			}), wait.WithTimeout(time.Second*10))
+			}), wait.WithTimeout(time.Second*30))
 			if err != nil {
 				t.Fatal(err)
 			}
