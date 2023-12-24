@@ -47,4 +47,11 @@ kind-control-plane   Ready    control-plane   64s   v1.27.3
     kind delete cluster
     ```
 
+### Running tests
+
+Run the tests using
+```sh
+go test -v ./tests/e2e
+```
+
 [1]: https://www.gnu.org/software/make/
