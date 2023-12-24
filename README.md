@@ -3,9 +3,9 @@
 The goals of this project are
 
 - [ ] Create a quickstart project for the [CSI specification](https://github.com/container-storage-interface/spec/blob/master/spec.md)
-    - [ ] Easy to read guide summarizing the requirements of a basic CSI plugin simulating [`emptyDir`](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir).
+    - [x] Easy to read guide summarizing the requirements of a basic CSI plugin simulating [`emptyDir`](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir).
     - [ ] Code implementing the bare minimum plugin described the guide.
-    - [ ] References helpful for learning the supplementary knowledge not directly related to Kubernetes/CSI.
+    - [x] References helpful for learning the supplementary knowledge not directly related to Kubernetes/CSI.
     - [ ] Document every decision, resource and changes in the project.
 
 ### Stretch Goals
