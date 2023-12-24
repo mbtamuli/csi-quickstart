@@ -9,21 +9,42 @@
 
 ### Setup cluster
 
+#### [`Make`][1]
+
+1. Helpful [`Make`][1] targets are added to allow doing common operational tasks
+    ```sh
+    make cluster-up
+    ```
+
+#### Manually
 1. Once the pre-requisites are met, you can create the local Kubernetes cluster using
-  ```sh
-  kind create cluster
-  ```
-2. Verify the cluster is running using
-  ```sh
-  kubectl get nodes
-  ```
-  You should see an output similar to
-  ```
-  NAME                 STATUS     ROLES           AGE   VERSION
-  kind-control-plane   NotReady   control-plane   9s    v1.27.3
-  ```
-3. If you want to easily setup and tear down the cluster from scratch, you can also use the following commands to do so
-  ```sh
-  make cluster-up
-  make cluster-down
-  ```
+    ```sh
+    kind create cluster
+    ```
+
+Using any of these methods, once the cluster is created, verify the cluster is running using
+```sh
+kubectl get nodes
+```
+You should see an output similar to
+```
+NAME                 STATUS     ROLES           AGE   VERSION
+kind-control-plane   NotReady   control-plane   9s    v1.27.3
+```
+
+### Tear down cluster
+
+#### `Make`
+
+1. Helpful [`Make`] targets are added to allow doing common operational tasks
+    ```sh
+    make cluster-down
+    ```
+
+#### Manually
+1. Once the pre-requisites are met, you can create the local Kubernetes cluster using
+    ```sh
+    kind delete cluster
+    ```
+
+[1]: https://www.gnu.org/software/make/
