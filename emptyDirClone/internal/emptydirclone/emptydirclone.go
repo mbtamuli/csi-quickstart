@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -25,12 +28,12 @@ func New(config Config) *emptyDirClone {
 }
 
 func (e *emptyDirClone) Serve() error {
-	network, address, err := parseEndpoint(e.config.Endpoint)
+	scheme, address, err := parseEndpoint(e.config.Endpoint)
 	if err != nil {
 		return err
 	}
 
-	lis, err := net.Listen(network, address)
+	lis, err := net.Listen(scheme, address)
 	if err != nil {
 		return err
 	}
@@ -45,14 +48,24 @@ func (e *emptyDirClone) Serve() error {
 }
 
 func parseEndpoint(endpoint string) (string, string, error) {
-	if strings.HasPrefix(strings.ToLower(endpoint), "unix://") {
-		s := strings.SplitN(endpoint, "://", 2)
-		if s[1] != "" {
-			return s[0], s[1], nil
-		}
-		return "", "", fmt.Errorf("invalid endpoint: %v", endpoint)
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return "", "", fmt.Errorf("could not parse endpoint: %w", err)
 	}
 
-	// Assume everything else is a file path for a Unix Domain Socket.
-	return "unix", endpoint, nil
+	addr := filepath.Join(u.Host, filepath.FromSlash(u.Path))
+
+	scheme := strings.ToLower(u.Scheme)
+	switch scheme {
+	case "tcp":
+	case "unix":
+		addr = filepath.Join("/", addr)
+		if err := os.Remove(addr); err != nil && !os.IsNotExist(err) {
+			return "", "", fmt.Errorf("could not remove unix domain socket %q: %w", addr, err)
+		}
+	default:
+		return "", "", fmt.Errorf("unsupported protocol: %s", scheme)
+	}
+
+	return scheme, addr, nil
 }
