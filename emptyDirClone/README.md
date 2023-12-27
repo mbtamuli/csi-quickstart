@@ -4,7 +4,7 @@ This document introduces the `emptyDirClone` Container Storage Interface (CSI) p
 
 CSI was developed as a standard for exposing arbitrary block and file storage storage systems to containerized workloads on Container Orchestration Systems (COs) like Kubernetes. With the adoption of the Container Storage Interface, the Kubernetes volume layer becomes truly extensible. The advantage of using CSI is that external storage providers can create and deploy plugins to introduce new storage systems in Kubernetes without having to modify the core Kubernetes code directly.
 
-For more information, you can refer to the resources provided in the [Required Reading](#required-reading) and [Optional Reading](#optional-reading) sections. The CSI specification itself is included in the [Optional Reading](#optional-reading) section. Keep in mind that this guide is designed to be beginner-friendly and serve as a quick start for CSI plugins. The additional tutorials and resources listed in the [Required Reading](#required-reading) section are considered sufficient for understanding the topic.
+For more information, you can refer to the resources provided in the [Required Reading](#required) and [Optional Reading](#optional) sections. The CSI specification itself is included in the [Optional Reading](#optional) section. Keep in mind that this guide is designed to be beginner-friendly and serve as a quick start for CSI plugins. The additional tutorials and resources listed in the [Required Reading](#required) section are considered sufficient for understanding the topic.
 
 We will call the plugin `emptyDirClone`.
 
@@ -115,9 +115,9 @@ spec:
   }
   ```
 
+## Reading/References
 
-
-## Required Reading
+### Required
 
 - [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
 - [Configure a Pod to Use a Volume for Storage](https://kubernetes.io/docs/tasks/configure-pod-container/configure-volume-storage/)
@@ -126,11 +126,11 @@ spec:
 - [Kubernetes Container Storage Interface (CSI) Documentation](https://kubernetes-csi.github.io/docs/)
 - [Recommended Mechanism for Deploying CSI Drivers on Kubernetes](https://github.com/kubernetes/design-proposals-archive/blob/main/storage/container-storage-interface.md#recommended-mechanism-for-deploying-csi-drivers-on-kubernetes)
 
-### References/Tools
+### Tools/Examples
 - Example implementation - [csi-driver-host-path](https://github.com/kubernetes-csi/csi-driver-host-path)
 - Local Testing tool - [`csc`](https://github.com/rexray/gocsi/tree/master/csc)
 
-## Optional Reading
+### Optional
 
 - [CSI Volume Plugins in Kubernetes Design Doc](https://github.com/kubernetes/design-proposals-archive/blob/main/storage/container-storage-interface.md)
 - [Container Storage Interface (CSI) for Kubernetes GA](https://kubernetes.io/blog/2019/01/15/container-storage-interface-ga/)
