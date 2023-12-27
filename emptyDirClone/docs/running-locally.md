@@ -41,7 +41,7 @@ Helpful [`Make`][1] targets are added to allow doing common operational tasks. R
 
 ### Tear down cluster
 
-Once the pre-requisites are met, you can create the local Kubernetes cluster using
+To delete the local cluster, run
   ```sh
   make cluster-down
 
