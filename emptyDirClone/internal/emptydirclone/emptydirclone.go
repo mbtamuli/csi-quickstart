@@ -14,7 +14,9 @@ import (
 )
 
 type Config struct {
-	Endpoint string
+	Name          string
+	Endpoint      string
+	VendorVersion string
 }
 
 type emptyDirClone struct {

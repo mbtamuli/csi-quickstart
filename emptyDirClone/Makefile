@@ -101,12 +101,13 @@ kind-load: ## Load docker image with the plugin, into Kind cluster targeted by t
 
 .PHONY: deploy
 deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
-
-	kubectl apply --file deploy
+	@kubectl apply --filename deploy \
+		|| { sleep 1; kubectl apply --filename deploy; }
 
 .PHONY: undeploy
 undeploy: ## Undeploy the plugin from the K8s cluster specified in $KUBECONFIG.
-	kubectl delete --file deploy
+	@kubectl delete --filename deploy \
+		|| sleep 1
 
 ## Helpers
 
