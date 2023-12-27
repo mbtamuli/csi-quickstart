@@ -4,6 +4,9 @@
 
 - [Docker](https://docs.docker.com/engine/install/) | For macOS or Windows install [Docker Desktop](https://docs.docker.com/desktop/)
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+
+- \(Optional\) [stern](https://github.com/stern/stern#installation)
 
 ## Quickstart
 
@@ -16,16 +19,13 @@ make deploy
 
 ## Developing Locally
 
-Helpful [`Make`][1] targets are added to allow doing common operational tasks. Run `make help` to see all options.
+[`Make`][1] targets are added to allow doing common operational tasks. Run `make help` to see all options.
 
 ### Setup cluster
 
 1. Once the pre-requisites are met, you can create the local Kubernetes cluster using
     ```sh
     make cluster-up
-
-    # Or manually
-    kind create cluster
     ```
 
 1. Using any of these methods, once the cluster is created, verify the cluster is running using
@@ -44,17 +44,7 @@ Helpful [`Make`][1] targets are added to allow doing common operational tasks. R
 To delete the local cluster, run
   ```sh
   make cluster-down
-
-  # Or manually
-  kind delete cluster
   ```
-
-### Running tests
-
-Run the tests using
-```sh
-go test -v ./tests/e2e
-```
 
 ### Build and Deploy
 
@@ -83,8 +73,26 @@ go test -v ./tests/e2e
     ```
 
 1. To deploy the manifests
-    ```
+    ```sh
     make deploy
+    ```
+
+### Running tests and checking logs
+
+1. Check plugin logs. Run the following in a separate terminal as it will "follow" the logs
+    ```sh
+    make logs
+    ```
+
+1. Run [`csc`](https://github.com/rexray/gocsi/tree/master/csc) tests
+    ```sh
+    make csc-tests
+    ```
+
+
+1. Run the e2e tests using. See [`e2e`](../tests/e2e/)
+    ```sh
+    make e2e
     ```
 
 [1]: https://www.gnu.org/software/make/
