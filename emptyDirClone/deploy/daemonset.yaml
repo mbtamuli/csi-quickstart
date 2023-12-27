@@ -1,0 +1,66 @@
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: emptydirclone-plugin
+  namespace: emptydirclone
+spec:
+  selector:
+    matchLabels:
+      app: emptydirclone-plugin
+  template:
+    metadata:
+      labels:
+        app: emptydirclone-plugin
+    spec:
+      serviceAccountName: emptydirclone-sa
+
+      containers:
+        - name: csi-volume-driver
+          image: ghcr.io/mbtamuli/csi-quickstart/emptydirclone:debug
+          args:
+            - "--endpoint=$(CSI_ENDPOINT)"
+          env:
+            - name: CSI_ENDPOINT
+              value: unix:/csi/csi.sock
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /csi
+              name: plugin-dir
+            - mountPath: /var/lib/kubelet
+              mountPropagation: Bidirectional
+              name: kubelet-dir
+
+        - name: node-driver-registrar
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.9.2
+          args:
+            - --csi-address=/csi/csi.sock
+            - --kubelet-registration-path=/var/lib/kubelet/plugins/emptydirclone.mriyam.dev/csi.sock
+            - --v=2
+          securityContext:
+            privileged: true
+          env:
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+          volumeMounts:
+          - mountPath: /csi
+            name: plugin-dir
+          - mountPath: /registration
+            name: kubelet-registration-dir
+
+      volumes:
+        - hostPath:
+            path: /var/lib/kubelet/plugins_registry
+            type: Directory
+          name: kubelet-registration-dir
+        - hostPath:
+            path: /var/lib/kubelet/
+            type: DirectoryOrCreate
+          name: kubelet-dir
+        - hostPath:
+            path: /var/lib/kubelet/plugins/emptydirclone.mriyam.dev
+            type: DirectoryOrCreate
+          name: plugin-dir
