@@ -7,7 +7,10 @@ import (
 )
 
 func (e *emptyDirClone) GetPluginInfo(context.Context, *csi.GetPluginInfoRequest) (*csi.GetPluginInfoResponse, error) {
-	return &csi.GetPluginInfoResponse{}, nil
+	return &csi.GetPluginInfoResponse{
+		Name:          e.config.Name,
+		VendorVersion: e.config.VendorVersion,
+	}, nil
 }
 
 func (e *emptyDirClone) GetPluginCapabilities(context.Context, *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
