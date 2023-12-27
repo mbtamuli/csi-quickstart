@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/mbtamuli/emptyDirClone/internal/emptydirclone"
 )
@@ -18,8 +17,6 @@ func main() {
 	if version == "" {
 		version = "0.0.0"
 	}
-
-	fmt.Printf("Version: %s\n", version)
 
 	cfg := emptydirclone.Config{
 		Endpoint: endpoint,
