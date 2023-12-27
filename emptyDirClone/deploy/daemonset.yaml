@@ -19,6 +19,8 @@ spec:
           image: ghcr.io/mbtamuli/csi-quickstart/emptydirclone:debug
           args:
             - "--endpoint=$(CSI_ENDPOINT)"
+            - "--verbosity=-10"
+            - "--environment=development"
           env:
             - name: CSI_ENDPOINT
               value: unix:/csi/csi.sock
