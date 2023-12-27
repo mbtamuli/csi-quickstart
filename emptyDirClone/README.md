@@ -4,7 +4,7 @@ This document introduces the `emptyDirClone` Container Storage Interface (CSI) p
 
 CSI was developed as a standard for exposing arbitrary block and file storage storage systems to containerized workloads on Container Orchestration Systems (COs) like Kubernetes. With the adoption of the Container Storage Interface, the Kubernetes volume layer becomes truly extensible. The advantage of using CSI is that external storage providers can create and deploy plugins to introduce new storage systems in Kubernetes without having to modify the core Kubernetes code directly.
 
-For more information, you can refer to the resources provided in the [Required Reading](#required-reading) and [Optional Reading](#optional-reading) sections. The CSI specification itself is included in the [Optional Reading](#optional-reading) section. Keep in mind that this guide is designed to be beginner-friendly and serve as a quick start for CSI plugins. The additional tutorials and resources listed in the [Required Reading](#required-reading) section are considered sufficient for understanding the topic.
+For more information, you can refer to the resources provided in the [Required Reading](#required) and [Optional Reading](#optional) sections. The CSI specification itself is included in the [Optional Reading](#optional) section. Keep in mind that this guide is designed to be beginner-friendly and serve as a quick start for CSI plugins. The additional tutorials and resources listed in the [Required Reading](#required) section are considered sufficient for understanding the topic.
 
 We will call the plugin `emptyDirClone`.
 
