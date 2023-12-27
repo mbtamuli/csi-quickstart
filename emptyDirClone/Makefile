@@ -2,12 +2,10 @@
 .PHONY: all
 all: help
 
-GIT_HASH=$(shell git describe --always --long)
-GIT_TAG=$(shell git name-rev --name-only --tags HEAD | sed 's/^undefined$$//')
-GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-GIT_INFO=$(if $(GIT_TAG),$(GIT_TAG),$(GIT_BRANCH)-$(GIT_HASH))
+SHELL=/bin/bash
 
-
+# Binary PATH
+BINARY := bin/emptydirclone
 # Image URL to use all building/pushing image targets
 IMG ?= ghcr.io/mbtamuli/csi-quickstart/emptydirclone
 # Image tag
@@ -52,11 +50,35 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-.PHONY: test
-test: fmt vet ## Run tests.
+.PHONY: csc-test
+csc-test: fmt vet build ## Run `csc` tests.
+	@./tests/csc_tests.sh $(BINARY)
+
+.PHONY: e2e
+e2e: fmt vet ## Run e2e tests.
 	go test ./tests/e2e -v
 
+
+STERN_EXISTS := $(shell stern --version 2>/dev/null)
+.PHONY: logs
+logs:
+ifdef STERN_EXISTS
+	stern --namespace emptydirclone \
+		--selector 'app=emptydirclone-plugin' \
+		--container '(csi-volume-driver|node-driver-registrar)'
+else
+	kubectl logs --namespace emptydirclone \
+		--selector 'app=emptydirclone-plugin' \
+		--container csi-volume-driver \
+		--container node-driver-registrar \
+		--follow --ignore-errors --prefix
+endif
+
 ##@ Build
+
+.PHONY: build
+build: ## Build binary for testing with `csc`
+	go build -ldflags "-s -w -X main.version=${VERSION}" -o $(BINARY) main.go
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the plugin.
@@ -68,11 +90,12 @@ docker-push: ## Push docker image with the plugin.
 	docker push ${IMG}:${TAG}
 	docker push ${IMG}:debug
 
+CLUSTER_CONTEXT=$(shell kubectl config current-context)
+KIND_CLUSTER_NAME=$(CLUSTER_CONTEXT:kind-%=%)
 .PHONY: kind-load
 kind-load: ## Load docker image with the plugin, into Kind cluster targeted by the current context(`kubectl config current-context`).
-	$(eval NAME = $(shell kubectl config current-context | sed 's/kind-//'))
-	kind load docker-image ${IMG}:${TAG} --name $(NAME)
-	kind load docker-image ${IMG}:debug --name $(NAME)
+	kind load docker-image ${IMG}:${TAG} --name $(KIND_CLUSTER_NAME)
+	kind load docker-image ${IMG}:debug --name $(KIND_CLUSTER_NAME)
 
 ##@ Deploy
 
@@ -84,3 +107,12 @@ deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
 .PHONY: undeploy
 undeploy: ## Undeploy the plugin from the K8s cluster specified in $KUBECONFIG.
 	kubectl delete --file deploy
+
+## Helpers
+
+# Get information from git to reliably identify
+# the commit from a branch/tag to set the version
+GIT_HASH=$(shell git describe --always --long)
+GIT_TAG=$(shell git name-rev --name-only --tags HEAD | sed 's/^undefined$$//')
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+GIT_INFO=$(if $(GIT_TAG),$(GIT_TAG),$(GIT_BRANCH)-$(GIT_HASH))
