@@ -69,7 +69,7 @@ docker-push: ## Push docker image with the plugin.
 	docker push ${IMG}:debug
 
 .PHONY: kind-load
-kind-load: ## Load docker image with the plugin, into Kind cluster.
+kind-load: ## Load docker image with the plugin, into Kind cluster targeted by the current context(`kubectl config current-context`).
 	$(eval NAME = $(shell kubectl config current-context | sed 's/kind-//'))
 	kind load docker-image ${IMG}:${TAG} --name $(NAME)
 	kind load docker-image ${IMG}:debug --name $(NAME)
@@ -78,6 +78,7 @@ kind-load: ## Load docker image with the plugin, into Kind cluster.
 
 .PHONY: deploy
 deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
+
 	kubectl apply --file deploy
 
 .PHONY: undeploy

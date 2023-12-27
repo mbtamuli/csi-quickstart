@@ -10,7 +10,7 @@ We will call the plugin `emptyDirClone`.
 
 ## Quickstart
 
-1. Setup the cluster using the instructions in [running locally](./docs/running-locally.md).
+See the instructions for [running locally](./docs/running-locally.md).
 
 ## Understanding [`emptyDir`][1] Volumes
 

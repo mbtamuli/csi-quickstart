@@ -5,6 +5,15 @@
 - [Docker](https://docs.docker.com/engine/install/) | For macOS or Windows install [Docker Desktop](https://docs.docker.com/desktop/)
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
+## Quickstart
+
+Run the following to have the plugin deployed into a local cluster
+
+```sh
+make cluster-up
+make deploy
+```
+
 ## Developing Locally
 
 Helpful [`Make`][1] targets are added to allow doing common operational tasks. Run `make help` to see all options.
@@ -54,7 +63,7 @@ go test -v ./tests/e2e
     # with the defaults - `ghcr.io/mbtamuli/csi-quickstart/emptydirclone:latest`
     make docker-build
     ```
-    _**Note:** You can change the image name or tag as follows, which also works with `docker-push` and `kind-load` targets_
+    _**Note:** You can change the image name or tag as follows, which also works with `docker-push`,`kind-load` and `deploy` targets_
     ```sh
     # setting the image name - `myimage:latest`
     make docker-build IMG=myimage
@@ -71,6 +80,11 @@ go test -v ./tests/e2e
 1. To load the image locally into the cluster created in [Setup Cluster](#setup-cluster)
     ```sh
     make kind-load
+    ```
+
+1. To deploy the manifests
+    ```
+    make deploy
     ```
 
 [1]: https://www.gnu.org/software/make/
