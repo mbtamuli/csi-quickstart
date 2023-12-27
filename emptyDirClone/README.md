@@ -115,9 +115,9 @@ spec:
   }
   ```
 
+## Reading/References
 
-
-## Required Reading
+### Required
 
 - [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
 - [Configure a Pod to Use a Volume for Storage](https://kubernetes.io/docs/tasks/configure-pod-container/configure-volume-storage/)
@@ -126,11 +126,11 @@ spec:
 - [Kubernetes Container Storage Interface (CSI) Documentation](https://kubernetes-csi.github.io/docs/)
 - [Recommended Mechanism for Deploying CSI Drivers on Kubernetes](https://github.com/kubernetes/design-proposals-archive/blob/main/storage/container-storage-interface.md#recommended-mechanism-for-deploying-csi-drivers-on-kubernetes)
 
-### References/Tools
+### Tools/Examples
 - Example implementation - [csi-driver-host-path](https://github.com/kubernetes-csi/csi-driver-host-path)
 - Local Testing tool - [`csc`](https://github.com/rexray/gocsi/tree/master/csc)
 
-## Optional Reading
+### Optional
 
 - [CSI Volume Plugins in Kubernetes Design Doc](https://github.com/kubernetes/design-proposals-archive/blob/main/storage/container-storage-interface.md)
 - [Container Storage Interface (CSI) for Kubernetes GA](https://kubernetes.io/blog/2019/01/15/container-storage-interface-ga/)
