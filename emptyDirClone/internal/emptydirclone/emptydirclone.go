@@ -1,6 +1,7 @@
 package emptydirclone
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -15,8 +16,9 @@ import (
 )
 
 type Config struct {
-	Name          string
 	Endpoint      string
+	Name          string
+	NodeID        string
 	VendorVersion string
 }
 
@@ -25,11 +27,23 @@ type emptyDirClone struct {
 	logger logr.Logger
 }
 
-func New(config Config, logger logr.Logger) *emptyDirClone {
+func New(config Config, logger logr.Logger) (*emptyDirClone, error) {
+	if config.Name == "" {
+		return nil, errors.New("no driver name provided")
+	}
+
+	if config.NodeID == "" {
+		return nil, errors.New("no node id provided")
+	}
+
+	if config.Endpoint == "" {
+		return nil, errors.New("no driver endpoint provided")
+	}
+
 	return &emptyDirClone{
 		config: config,
 		logger: logger.WithName("emptydirclone"),
-	}
+	}, nil
 }
 
 func (e *emptyDirClone) Serve() error {
