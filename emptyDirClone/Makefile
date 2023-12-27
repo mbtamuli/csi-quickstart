@@ -2,6 +2,19 @@
 .PHONY: all
 all: help
 
+GIT_HASH=$(shell git describe --always --long)
+GIT_TAG=$(shell git name-rev --name-only --tags HEAD | sed 's/^undefined$$//')
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+GIT_INFO=$(if $(GIT_TAG),$(GIT_TAG),$(GIT_BRANCH)-$(GIT_HASH))
+
+
+# Image URL to use all building/pushing image targets
+IMG ?= ghcr.io/mbtamuli/csi-quickstart/emptydirclone
+# Image tag
+TAG ?= latest
+# Version of the application
+VERSION ?= $(GIT_INFO)
+
 ##@ General
 
 # The help target prints out all targets with their descriptions organized
@@ -20,6 +33,7 @@ help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Cluster
+
 .PHONY: cluster-up
 cluster-up: ## Create a local Kubernetes cluster using `kind`.
 	kind create cluster
@@ -27,3 +41,46 @@ cluster-up: ## Create a local Kubernetes cluster using `kind`.
 .PHONY: cluster-down
 cluster-down: ## Destroy the local cluster.
 	kind delete cluster
+
+##@ Development
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
+
+.PHONY: test
+test: fmt vet ## Run tests.
+	go test ./tests/e2e -v
+
+##@ Build
+
+.PHONY: docker-build
+docker-build: ## Build docker image with the plugin.
+	docker build --build-arg VERSION=${VERSION} --tag ${IMG}:${TAG} .
+	docker build --build-arg VERSION=${VERSION} --target debug --tag ${IMG}:debug .
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the plugin.
+	docker push ${IMG}:${TAG}
+	docker push ${IMG}:debug
+
+.PHONY: kind-load
+kind-load: ## Load docker image with the plugin, into Kind cluster targeted by the current context(`kubectl config current-context`).
+	$(eval NAME = $(shell kubectl config current-context | sed 's/kind-//'))
+	kind load docker-image ${IMG}:${TAG} --name $(NAME)
+	kind load docker-image ${IMG}:debug --name $(NAME)
+
+##@ Deploy
+
+.PHONY: deploy
+deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
+
+	kubectl apply --file deploy
+
+.PHONY: undeploy
+undeploy: ## Undeploy the plugin from the K8s cluster specified in $KUBECONFIG.
+	kubectl delete --file deploy
