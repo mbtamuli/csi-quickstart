@@ -2,7 +2,6 @@ package emptydirclone
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/go-logr/logr"
+	"github.com/mbtamuli/emptyDirClone/internal/log"
 	"google.golang.org/grpc"
 )
 
@@ -21,31 +22,45 @@ type Config struct {
 
 type emptyDirClone struct {
 	config Config
+	logger logr.Logger
 }
 
-func New(config Config) *emptyDirClone {
+func New(config Config, logger logr.Logger) *emptyDirClone {
 	return &emptyDirClone{
 		config: config,
+		logger: logger.WithName("emptydirclone"),
 	}
 }
 
 func (e *emptyDirClone) Serve() error {
+	debugLogger := e.logger.WithName("Serve").V(2)
+
+	debugLogger.Info("gRPC server starting", "config", e.config)
+
 	scheme, address, err := parseEndpoint(e.config.Endpoint)
 	if err != nil {
+		e.logger.Error(err, "failed to parse address")
+
 		return err
 	}
 
+	debugLogger.Info("parsed endpoints", "scheme", scheme, "address", address)
+
 	lis, err := net.Listen(scheme, address)
 	if err != nil {
+		e.logger.Error(err, "failed to listen")
 		return err
 	}
 	defer lis.Close()
 
-	grpcServer := grpc.NewServer()
+	e.logger.Info("gRPC Server listening", "scheme", scheme, "address", address)
+
+	grpcServer := grpc.NewServer(log.GRPCOpts(debugLogger.Enabled(), debugLogger)...)
 	csi.RegisterIdentityServer(grpcServer, e)
 	csi.RegisterNodeServer(grpcServer, e)
 
-	log.Println("Listening on", e.config.Endpoint)
+	debugLogger.Info("registering servers and listening")
+
 	return grpcServer.Serve(lis)
 }
 
