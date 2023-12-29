@@ -1,0 +1,34 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "CSI-Quickstart",
+	"image": "mcr.microsoft.com/devcontainers/go:1.21-bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"configureZshAsDefaultShell": true,
+			"installOhMyZsh": true,
+			"installOhMyZshConfig": true,
+			"username": "vscode",
+			"userUid": 1001,
+			"userGid": 1001
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": true,
+			"azureDnsAutoDetection": true,
+			"installDockerBuildx": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers-contrib/features/kind:1": {
+			"version": "latest"
+		}
+	},
+	"customizations": {
+		"vscode": {
+		  "extensions": ["golang.go"]
+		}
+	},
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/csi-quickstart,type=bind",
+	"workspaceFolder": "/home/vscode/csi-quickstart"
+}
