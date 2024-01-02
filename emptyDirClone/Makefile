@@ -12,6 +12,12 @@ IMG ?= ghcr.io/mbtamuli/csi-quickstart/emptydirclone
 TAG ?= latest
 # Version of the application
 VERSION ?= $(GIT_INFO)
+# Namespace to deploy the CSI plugin
+CSI_NAMESPACE ?= emptydirclone
+# E2E Test args
+ifdef E2E_TEST_ARGS
+E2E_ARGS = --args $(E2E_TEST_ARGS)
+endif
 
 ##@ General
 
@@ -56,7 +62,7 @@ csc-test: fmt vet build ## Run `csc` tests.
 
 .PHONY: e2e
 e2e: fmt vet ## Run e2e tests.
-	go test ./tests/e2e -v
+	env KUBECONFIG=${PWD}/tests/e2e/kubeconfig.yaml go test ./tests/e2e -test.v $(E2E_ARGS)
 
 
 STERN_EXISTS := $(shell stern --version 2>/dev/null)
@@ -101,13 +107,13 @@ kind-load: ## Load docker image with the plugin, into Kind cluster targeted by t
 
 .PHONY: deploy
 deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
-	@kubectl apply --filename deploy \
-		|| { sleep 1; kubectl apply --filename deploy; }
+	@kubectl create namespace $(CSI_NAMESPACE) \
+		&& kubectl config set-context $(kubectl config current-context) --namespace=$(CSI_NAMESPACE) \
+		&& kubectl apply --filename deploy
 
 .PHONY: undeploy
 undeploy: ## Undeploy the plugin from the K8s cluster specified in $KUBECONFIG.
-	@kubectl delete --filename deploy \
-		|| sleep 1
+	@kubectl delete --filename deploy
 
 ## Helpers
 

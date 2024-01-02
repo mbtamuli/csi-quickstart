@@ -1,6 +1,8 @@
 package emptydirclone
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -10,13 +12,13 @@ import (
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/go-logr/logr"
-	"github.com/mbtamuli/emptyDirClone/internal/log"
 	"google.golang.org/grpc"
 )
 
 type Config struct {
-	Name          string
 	Endpoint      string
+	Name          string
+	NodeID        string
 	VendorVersion string
 }
 
@@ -25,11 +27,30 @@ type emptyDirClone struct {
 	logger logr.Logger
 }
 
-func New(config Config, logger logr.Logger) *emptyDirClone {
+type AccessType int
+
+const (
+	MountAccess AccessType = iota
+	BlockAccess
+)
+
+func New(config Config, logger logr.Logger) (*emptyDirClone, error) {
+	if config.Name == "" {
+		return nil, errors.New("no driver name provided")
+	}
+
+	if config.NodeID == "" {
+		return nil, errors.New("no node id provided")
+	}
+
+	if config.Endpoint == "" {
+		return nil, errors.New("no driver endpoint provided")
+	}
+
 	return &emptyDirClone{
 		config: config,
 		logger: logger.WithName("emptydirclone"),
-	}
+	}, nil
 }
 
 func (e *emptyDirClone) Serve() error {
@@ -55,7 +76,22 @@ func (e *emptyDirClone) Serve() error {
 
 	e.logger.Info("gRPC Server listening", "scheme", scheme, "address", address)
 
-	grpcServer := grpc.NewServer(log.GRPCOpts(debugLogger.Enabled(), debugLogger)...)
+	logger := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		grpcLogger := debugLogger.WithName("gRPC")
+		if grpcLogger.Enabled() {
+			grpcLogger.Info("method", "method", info.FullMethod, "request", req)
+		}
+		resp, err := handler(ctx, req)
+		if err != nil {
+			e.logger.Error(err, "method %q failed", info.FullMethod)
+		}
+		if grpcLogger.Enabled() && err == nil {
+			grpcLogger.Info("method", "method", info.FullMethod, "response", resp)
+		}
+		return resp, err
+	}
+
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(logger))
 	csi.RegisterIdentityServer(grpcServer, e)
 	csi.RegisterNodeServer(grpcServer, e)
 
@@ -85,4 +121,10 @@ func parseEndpoint(endpoint string) (string, string, error) {
 	}
 
 	return scheme, addr, nil
+}
+
+// getVolumePath returns the canonical path for hostpath volume
+func getVolumePath(volName string) string {
+	// return filepath.Join("/csi-data-dir", volName)
+	return filepath.Join("/csi/data", volName)
 }
