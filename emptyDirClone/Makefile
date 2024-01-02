@@ -14,6 +14,10 @@ TAG ?= latest
 VERSION ?= $(GIT_INFO)
 # Namespace to deploy the CSI plugin
 CSI_NAMESPACE ?= emptydirclone
+# E2E Test args
+ifdef E2E_TEST_ARGS
+E2E_ARGS = --args $(E2E_TEST_ARGS)
+endif
 
 ##@ General
 
@@ -58,7 +62,7 @@ csc-test: fmt vet build ## Run `csc` tests.
 
 .PHONY: e2e
 e2e: fmt vet ## Run e2e tests.
-	go test ./tests/e2e -v
+	env KUBECONFIG=${PWD}/tests/e2e/kubeconfig.yaml go test ./tests/e2e -test.v $(E2E_ARGS)
 
 
 STERN_EXISTS := $(shell stern --version 2>/dev/null)

@@ -62,6 +62,7 @@ func TestEmptyDirClone(t *testing.T) {
 			// wait for the pod to be in 'Running' phase
 			err = wait.For(conditions.New(client.Resources()).ResourceMatch(&found, func(object k8s.Object) bool {
 				p := object.(*v1.Pod)
+				t.Log(p.Status.Phase)
 				return p.Status.Phase == v1.PodRunning
 			}), wait.WithTimeout(time.Second*30))
 			if err != nil {
@@ -117,6 +118,7 @@ func TestEmptyDirClone(t *testing.T) {
 }
 
 func newPod(namespace string, name string) *v1.Pod {
+	gracePeriod := int64(0)
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -126,6 +128,7 @@ func newPod(namespace string, name string) *v1.Pod {
 			},
 		},
 		Spec: v1.PodSpec{
+			TerminationGracePeriodSeconds: &gracePeriod,
 			Containers: []v1.Container{
 				{
 					Name:  "csi-volume-test",
