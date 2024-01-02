@@ -2,8 +2,20 @@ package emptydirclone
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"k8s.io/mount-utils"
+)
+
+const (
+	deviceID    = "deviceID"
+	storageKind = "kind"
 )
 
 func (e *emptyDirClone) NodeGetInfo(context.Context, *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
@@ -12,7 +24,92 @@ func (e *emptyDirClone) NodeGetInfo(context.Context, *csi.NodeGetInfoRequest) (*
 	}, nil
 }
 
-func (e *emptyDirClone) NodePublishVolume(context.Context, *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+func (e *emptyDirClone) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+	// Check arguments
+	if req.GetVolumeCapability() == nil {
+		return nil, status.Error(codes.InvalidArgument, "Volume capability missing in request")
+	}
+	if len(req.GetVolumeId()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
+	}
+	if len(req.GetTargetPath()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
+	}
+
+	targetPath := req.GetTargetPath()
+
+	ephemeralVolume := req.GetVolumeContext()["csi.storage.k8s.io/ephemeral"] == "true" ||
+		req.GetVolumeContext()["csi.storage.k8s.io/ephemeral"] == "" // Kubernetes 1.15 doesn't have csi.storage.k8s.io/ephemeral.
+
+	if req.GetVolumeCapability().GetBlock() != nil &&
+		req.GetVolumeCapability().GetMount() != nil {
+		return nil, status.Error(codes.InvalidArgument, "cannot have both block and mount access type")
+	}
+
+	mounter := mount.New("")
+
+	volID := req.GetVolumeId()
+	volName := fmt.Sprintf("ephemeral-%s", volID)
+	path := getVolumePath(volName)
+
+	// if ephemeral is specified, create volume here to avoid errors
+	if ephemeralVolume {
+		err := os.MkdirAll(path, 0o777)
+		if err != nil {
+			return nil, err
+		}
+		if err != nil && !os.IsExist(err) {
+			e.logger.Error(err, "ephemeral mode failed to create volume")
+			return nil, err
+		}
+		e.logger.V(4).Info("ephemeral mode, created volume", "volume", path)
+	}
+
+	if req.GetVolumeCapability().GetMount() != nil {
+		notMnt, err := mounter.IsMountPoint(targetPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				if err = os.Mkdir(targetPath, 0o750); err != nil {
+					return nil, fmt.Errorf("create target path: %w", err)
+				}
+				notMnt = true
+			} else {
+				return nil, fmt.Errorf("check target path: %w", err)
+			}
+		}
+
+		if !notMnt {
+			return &csi.NodePublishVolumeResponse{}, nil
+		}
+
+		fsType := req.GetVolumeCapability().GetMount().GetFsType()
+
+		deviceId := ""
+		if req.GetPublishContext() != nil {
+			deviceId = req.GetPublishContext()[deviceID]
+		}
+
+		readOnly := req.GetReadonly()
+		volumeId := req.GetVolumeId()
+		attrib := req.GetVolumeContext()
+		mountFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
+
+		glog.V(4).Infof("target %v\nfstype %v\ndevice %v\nreadonly %v\nvolumeId %v\nattributes %v\nmountflags %v\n",
+			targetPath, fsType, deviceId, readOnly, volumeId, attrib, mountFlags)
+
+		options := []string{"bind"}
+		if readOnly {
+			options = append(options, "ro")
+		}
+
+		if err := mounter.Mount(path, targetPath, "", options); err != nil {
+			var errList strings.Builder
+			errList.WriteString(err.Error())
+
+			return nil, fmt.Errorf("failed to mount device: %s at %s: %s", path, targetPath, errList.String())
+		}
+	}
+
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
