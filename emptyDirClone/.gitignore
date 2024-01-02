@@ -1,2 +1,4 @@
 bin/
 test.sock
+tests/e2e/logs/
+tests/e2e/kubeconfig.yaml

@@ -21,7 +21,7 @@ spec:
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--environment=development"
             - "--nodeid=$(KUBE_NODE_NAME)"
-            - "--verbosity=-10"
+            - "--verbosity=-2"
           env:
             - name: CSI_ENDPOINT
               value: unix:/csi/csi.sock
@@ -65,7 +65,7 @@ spec:
             type: Directory
           name: kubelet-registration-dir
         - hostPath:
-            path: /var/lib/kubelet/
+            path: /var/lib/kubelet
             type: DirectoryOrCreate
           name: kubelet-dir
         - hostPath:
