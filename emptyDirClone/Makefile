@@ -108,13 +108,13 @@ kind-load: ## Load docker image with the plugin, into Kind cluster targeted by t
 .PHONY: deploy
 deploy: ## Deploy the plugin to the K8s cluster specified in $KUBECONFIG.
 	@kubectl create namespace $(CSI_NAMESPACE) \
-		&& kubectl config set-context $(kubectl config current-context) --namespace=$(CSI_NAMESPACE) \
+		&& kubectl config set-context $(shell kubectl config current-context) --namespace=$(CSI_NAMESPACE) \
 		&& kubectl apply --filename deploy
 
 .PHONY: undeploy
 undeploy: ## Undeploy the plugin from the K8s cluster specified in $KUBECONFIG.
-	@kubectl delete --filename deploy
-
+	@kubectl delete --filename deploy --ignore-not-found=true --force=true \
+		&& kubectl delete namespace $(CSI_NAMESPACE) --ignore-not-found=true
 ## Helpers
 
 # Get information from git to reliably identify
