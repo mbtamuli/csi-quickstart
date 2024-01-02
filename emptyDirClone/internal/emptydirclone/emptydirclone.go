@@ -83,7 +83,7 @@ func (e *emptyDirClone) Serve() error {
 		}
 		resp, err := handler(ctx, req)
 		if err != nil {
-			e.logger.Error(err, "method %q failed", info.FullMethod)
+			e.logger.Error(err, "method failed", "FullMethod", info.FullMethod)
 		}
 		if grpcLogger.Enabled() && err == nil {
 			grpcLogger.Info("method", "method", info.FullMethod, "response", resp)
