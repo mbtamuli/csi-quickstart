@@ -48,8 +48,8 @@ func (e *emptyDirClone) NodePublishVolume(ctx context.Context, req *csi.NodePubl
 
 	mounter := mount.New("")
 
-	volID := req.GetVolumeId()
-	volName := fmt.Sprintf("ephemeral-%s", volID)
+	volumeID := req.GetVolumeId()
+	volName := fmt.Sprintf("ephemeral-%s", volumeID)
 	path := getVolumePath(volName)
 
 	// if ephemeral is specified, create volume here to avoid errors
@@ -113,7 +113,44 @@ func (e *emptyDirClone) NodePublishVolume(ctx context.Context, req *csi.NodePubl
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func (e *emptyDirClone) NodeUnpublishVolume(context.Context, *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+func (e *emptyDirClone) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+	// Check arguments
+	if len(req.GetVolumeId()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
+	}
+	if len(req.GetTargetPath()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
+	}
+
+	targetPath := req.GetTargetPath()
+	volumeID := req.GetVolumeId()
+	volName := fmt.Sprintf("ephemeral-%s", volumeID)
+	path := getVolumePath(volName)
+	mounter := mount.New("")
+
+	// Unmount only if the target path is really a mount point.
+	if mnt, err := mounter.IsMountPoint(targetPath); err != nil {
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("check target path: %w", err)
+		}
+	} else if mnt {
+		// Unmounting the image or filesystem.
+		err = mounter.Unmount(targetPath)
+		if err != nil {
+			return nil, fmt.Errorf("unmount target path: %w", err)
+		}
+	}
+	// Delete the mount point.
+	// Does not return error for non-existent path, repeated calls OK for idempotency.
+	if err := os.RemoveAll(targetPath); err != nil {
+		return nil, fmt.Errorf("remove target path: %w", err)
+	}
+
+	// Delete the volume directory.
+	if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("remove volume path: %w", err)
+	}
+
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
