@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 jobs:
-  "Build and Push container Image":
+  image-build-push:
     runs-on: ubuntu-latest
     steps:
       -
