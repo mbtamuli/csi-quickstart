@@ -14,7 +14,7 @@ jobs:
         go-version: [ '1.21' ]
     steps:
       - uses: actions/checkout@v4
-        working-directory:
+        working-directory: ${{ github.workspace }}
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
