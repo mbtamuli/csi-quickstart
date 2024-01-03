@@ -1,6 +1,7 @@
 name: emptydirclone-e2e-tests
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: [emptydirclone-image-build-push]
     types: [completed]
