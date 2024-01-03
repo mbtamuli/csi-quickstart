@@ -1,15 +1,6 @@
 name: emptydirclone-e2e-tests
 
 on:
-  push:
-    branches:
-      - 'main'
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - 'main'
-  workflow_dispatch:
   workflow_run:
     workflows: [emptydirclone-image-build-push]
     types: [completed]

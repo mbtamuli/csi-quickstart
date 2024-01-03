@@ -29,7 +29,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/mbtamuli/csi-quickstart/emptydirclone
-          # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
             type=ref,event=pr
