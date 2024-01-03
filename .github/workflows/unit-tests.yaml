@@ -4,7 +4,7 @@ on: [push]
 
 defaults:
   run:
-    working-directory: ./emptyDirClone
+    working-directory: emptyDirClone
 
 jobs:
   unit-tests:
@@ -17,7 +17,7 @@ jobs:
         run: |
           echo $SHELL
           pwd
-        working-directory: .
+        working-directory: /tmp
         shell: sh
       - name: test without override
         run: |
