@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 jobs:
-  docker:
+  "Build and Push container Image":
     runs-on: ubuntu-latest
     steps:
       -
@@ -46,7 +46,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:emptydirclone"
+          context: "{{defaultContext}}:emptyDirClone"
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
