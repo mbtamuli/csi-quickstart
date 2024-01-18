@@ -27,21 +27,17 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var (
-		csiNamespace       = "emptydirclone"
-		csiPluginImage     = "ghcr.io/mbtamuli/csi-quickstart/emptydirclone:debug"
-		csiPluginPodLabels = map[string]string{"app": "emptydirclone-plugin"}
-		cfg, _             = envconf.NewFromFlags()
+	const (
+		csiNamespace string = "emptydirclone"
 	)
-
+	csiPluginPodLabels := map[string]string{"app": "emptydirclone-plugin"}
+	cfg, _ := envconf.NewFromFlags()
 	testEnv = env.NewWithConfig(cfg)
 	kindClusterName = envconf.RandomName("csi", 10)
 	namespace = envconf.RandomName("emptydirclone", 20)
-
 	testEnv.Setup(
 		envfuncs.CreateCluster(kind.NewProvider(), kindClusterName),
 		envfuncs.CreateNamespace(csiNamespace),
-		envfuncs.LoadDockerImageToCluster(kindClusterName, csiPluginImage),
 		deployEmptyDirClone(csiNamespace, csiPluginPodLabels),
 		envfuncs.CreateNamespace(namespace),
 	)
@@ -93,8 +89,8 @@ func deployEmptyDirClone(namespace string, labels map[string]string) env.Func {
 						return false
 					},
 				),
-			wait.WithInterval(time.Second*15),
-			wait.WithTimeout(time.Minute*2)); err != nil {
+			wait.WithInterval(time.Second*30),
+			wait.WithTimeout(time.Minute*5)); err != nil {
 			return ctx, err
 		}
 
