@@ -16,7 +16,7 @@ spec:
 
       containers:
         - name: csi-volume-driver
-          image: ghcr.io/mbtamuli/csi-quickstart-gh-action:main
+          image: ghcr.io/mbtamuli/csi-quickstart/emptydirclone:main
           args:
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--environment=development"
