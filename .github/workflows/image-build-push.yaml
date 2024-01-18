@@ -1,15 +1,15 @@
-name: emptydirclone-image-build-push
+name: image-build-push
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - 'main'
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - 'main'
+  workflow_call:
+    inputs:
+      directory:
+        required: true
+        type: string
+    outputs:
+      tag:
+        description: "Container image tag"
+        value: ${{ jobs.image-build-push.outputs.tag }}
 
 permissions:
   packages: write
@@ -17,28 +17,23 @@ permissions:
 jobs:
   image-build-push:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          echo "$GITHUB_CONTEXT"
       -
         name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/mbtamuli/csi-quickstart/emptydirclone
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
+          images: ghcr.io/${{ github.repository }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
       -
         name: Cache Docker layers
         uses: actions/cache@v3
@@ -58,8 +53,11 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:emptyDirClone"
+          context: "{{defaultContext}}:${{ inputs.directory }}"
+          platforms: linux/amd64,linux/arm64
           push: true
+          build-args:
+            VERSION=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache

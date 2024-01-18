@@ -1,31 +1,53 @@
 name: emptydirclone-e2e-tests
 
 on:
-  workflow_run:
-    workflows: [emptydirclone-image-build-push]
-    types: [completed]
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'main'
 
 permissions:
+  actions: read
   packages: write
 
 jobs:
-  on-success:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - run: echo 'The triggering workflow passed'
-  on-failure:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    steps:
-      - run: echo 'The triggering workflow failed'
+  build-image:
+    uses: ./.github/workflows/image-build-push.yaml
+    with:
+      directory: emptyDirClone
+    secrets: inherit
   e2e-tests:
     runs-on: ubuntu-latest
+    needs: build-image
     steps:
-      - name: Dump GitHub context
+      -
+        name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           echo "$GITHUB_CONTEXT"
-      - name: Run E2E tests
-        run: echo "Hello, E2E"
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Run tests
+        working-directory: ./emptyDirClone
+        run: |
+          make e2e E2E_TEST_ARGS="--fail-fast --v 6"
+      -
+        name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: ./emptyDirClone/tests/e2e/logs/
+      -
+        name: Cleanup
+        if: always()
+        run: |
+          for i in $(kind get clusters); do kind delete cluster --name $i; done
