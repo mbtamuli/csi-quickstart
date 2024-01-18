@@ -2,10 +2,6 @@ name: image-build-push
 
 on:
   workflow_call:
-    inputs:
-      directory:
-        required: true
-        type: string
     outputs:
       tag:
         description: "Container image tag"
@@ -53,7 +49,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:${{ inputs.directory }}"
+          context: "{{defaultContext}}:emptyDirClone"
           platforms: linux/amd64,linux/arm64
           push: true
           build-args:
